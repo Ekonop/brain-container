@@ -1,0 +1,7 @@
+torch
+torch_xla
+transformers
+fastapi
+uvicorn
+pyngrok
+jax[tpu]

@@ -1,0 +1,79 @@
+services:
+  backend:
+    build:
+      context: ../apps/backend
+      dockerfile: Dockerfile
+    environment:
+      - API_KEY=${API_KEY:-change-me}
+      - REDIS_URL=redis://redis:6379/0
+      - SEARXNG_URL=http://searxng:8080
+      - LLM_BASE_URL=http://llamacpp:8080/v1
+      - CHROMA_PERSIST_DIR=/data/chroma
+      - LLM_PROVIDER=${LLM_PROVIDER:-tpu}
+      - DEEPSEEK_API_KEY=${DEEPSEEK_API_KEY:-}
+      - DEEPSEEK_MODEL=${DEEPSEEK_MODEL:-deepseek-chat}
+      - TPU_BASE_URL=${TPU_BASE_URL:-}
+      - TPU_MODEL=${TPU_MODEL:-gemma-2-9b-it}
+    dns:
+      - 1.1.1.1
+      - 8.8.8.8
+    volumes:
+      - backend_data:/data
+    ports:
+      - "8000:8000"
+    depends_on:
+      - redis
+      - searxng
+    restart: unless-stopped
+
+  dashboard:
+    build:
+      context: ../apps/dashboard
+      dockerfile: Dockerfile
+    dns:
+      - 1.1.1.1
+      - 8.8.8.8
+    environment:
+      - NEXT_PUBLIC_API_URL=http://localhost:8000
+    ports:
+      - "3000:3000"
+    depends_on:
+      - backend
+    restart: unless-stopped
+
+  redis:
+    image: redis:7-alpine
+    restart: unless-stopped
+    volumes:
+      - redis_data:/data
+
+  searxng:
+    image: searxng/searxng:latest
+    restart: unless-stopped
+    volumes:
+      - searxng_data:/etc/searxng
+    environment:
+      - SEARXNG_BASE_URL=http://localhost:8081/
+    ports:
+      - "8081:8080"
+
+  llamacpp:
+    image: ghcr.io/ggml-org/llama.cpp:server
+    dns:
+      - 1.1.1.1
+      - 8.8.8.8
+    command: >
+      -m /models/qwen3-14b-q4.gguf
+      --host 0.0.0.0
+      --port 8080
+      -c 4096
+    volumes:
+      - ./models:/models
+    ports:
+      - "8082:8080"
+    restart: unless-stopped
+
+volumes:
+  backend_data:
+  redis_data:
+  searxng_data:

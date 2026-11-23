@@ -1,0 +1,15 @@
+{
+  "name": "@brain-container/shared-types",
+  "version": "0.1.0",
+  "private": true,
+  "main": "src/index.ts",
+  "types": "src/index.ts",
+  "scripts": {
+    "build": "echo \"shared-types: no build step\"",
+    "lint": "echo \"shared-types: skip\"",
+    "typecheck": "tsc --noEmit -p tsconfig.json"
+  },
+  "devDependencies": {
+    "typescript": "^5.7.2"
+  }
+}
