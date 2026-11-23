@@ -9,26 +9,24 @@ export default function PluginsPage() {
 
   useEffect(() => {
     fetch(`${API_BASE}/plugins`, { headers: { "X-API-Key": API_KEY } })
-      .then((r) => r.json())
-      .then(setPlugins)
-      .catch(() => {});
+      .then((r) => r.json()).then(setPlugins).catch(() => {});
   }, []);
 
   return (
     <div>
-      <h2 style={{ fontSize: "1.5rem", fontWeight: 700, marginBottom: "1.5rem" }}>Plugins</h2>
-      <div style={{ display: "grid", gap: "0.75rem" }}>
+      <h1 style={{ fontSize: "20px", fontWeight: 600, marginBottom: "24px" }}>Plugins</h1>
+      <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
         {plugins.map((p) => (
-          <div key={p.name} className="card" style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+          <div key={p.name} className="surface" style={{ padding: "16px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
             <div>
-              <div style={{ fontFamily: "monospace", fontWeight: 600, fontSize: "0.875rem" }}>{p.name}</div>
-              <div style={{ fontSize: "0.75rem", color: "var(--text-muted)", marginTop: "0.25rem" }}>{p.description}</div>
+              <div style={{ fontFamily: "monospace", fontSize: "13px", fontWeight: 500 }}>{p.name}</div>
+              <div className="text-muted" style={{ fontSize: "12px", marginTop: "2px" }}>{p.description}</div>
             </div>
-            <div style={{ display: "flex", alignItems: "center", gap: "0.75rem" }}>
+            <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
               <span className={`badge ${p.enabled ? "badge-success" : "badge-warning"}`}>
-                {p.enabled ? "Enabled" : "Disabled"}
+                {p.enabled ? "active" : "disabled"}
               </span>
-              <button className="btn-secondary" style={{ fontSize: "0.75rem", padding: "0.25rem 0.5rem" }}>
+              <button className="btn btn-secondary" style={{ fontSize: "12px", padding: "4px 8px" }}>
                 {p.enabled ? "Disable" : "Enable"}
               </button>
             </div>

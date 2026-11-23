@@ -2,147 +2,88 @@
 import { useState, useEffect } from "react";
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
+const API_KEY = "dev-key";
 
 export default function SettingsPage() {
   const [provider, setProvider] = useState("llamacpp");
-  const [apiKey, setApiKey] = useState("");
-  const [deepseekKey, setDeepseekKey] = useState("");
-  const [openaiKey, setOpenaiKey] = useState("");
-  const [openaiUrl, setOpenaiUrl] = useState("");
-  const [openaiModel, setOpenaiModel] = useState("");
-  const [status, setStatus] = useState("");
   const [providers, setProviders] = useState<any>(null);
+  const [status, setStatus] = useState("");
 
   useEffect(() => {
-    fetch(`${API_BASE}/providers`, { headers: { "X-API-Key": "dev-key" } })
-      .then((r) => r.json())
-      .then((d) => setProviders(d))
-      .catch(() => {});
+    fetch(`${API_BASE}/providers`, { headers: { "X-API-Key": API_KEY } })
+      .then((r) => r.json()).then(setProviders).catch(() => {});
   }, []);
 
-  async function saveProvider(p: string) {
-    setProvider(p);
-    setStatus("Provider selection saved locally. Restart backend with LLM_PROVIDER=" + p + " to apply.");
-  }
-
   return (
-    <div className="max-w-2xl">
-      <h2 className="text-2xl font-bold mb-4">Settings</h2>
+    <div style={{ maxWidth: 640 }}>
+      <h1 style={{ fontSize: "20px", fontWeight: 600, marginBottom: "24px" }}>Settings</h1>
 
-      <section className="mb-6">
-        <h3 className="text-lg font-medium mb-2">LLM Provider</h3>
-        <p className="text-sm text-zinc-600 mb-3">
-          Choose the inference backend. Local (llamacpp) keeps all data in the container.
-          Remote providers send data to external servers.
-        </p>
+      <div className="surface" style={{ padding: "20px", marginBottom: "16px" }}>
+        <div className="label" style={{ marginBottom: "12px" }}>LLM Provider</div>
         {providers && (
-          <p className="text-sm mb-3">
-            Current: <span className="font-mono font-bold">{providers.current}</span>
-          </p>
+          <div className="text-muted" style={{ fontSize: "12px", marginBottom: "12px" }}>
+            Current: <span style={{ color: "var(--text)", fontWeight: 500 }}>{providers.current}</span>
+          </div>
         )}
-        <div className="space-y-2">
+        <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
           {[
-            { id: "llamacpp", label: "Local (llama.cpp)", desc: "Privacy-first. Runs in container. No data leaves." },
-            { id: "deepseek", label: "DeepSeek API", desc: "Remote. Requires API key. Data sent to DeepSeek." },
-            { id: "openai_compatible", label: "OpenAI-compatible", desc: "Any OpenAI-compatible endpoint (local or remote)." },
+            { id: "llamacpp", label: "Local (llama.cpp)", desc: "Privacy-first. No data leaves container." },
+            { id: "deepseek", label: "DeepSeek API", desc: "Remote. Requires API key." },
+            { id: "openai_compatible", label: "OpenAI-compatible", desc: "Any OpenAI-compatible endpoint." },
+            { id: "tpu", label: "Kaggle TPU", desc: "Highest throughput. Model from HuggingFace." },
           ].map((opt) => (
-            <label key={opt.id} className="flex items-start gap-3 rounded border p-3 cursor-pointer hover:bg-zinc-50">
-              <input
-                type="radio"
-                name="provider"
-                value={opt.id}
-                checked={provider === opt.id}
-                onChange={() => saveProvider(opt.id)}
-                className="mt-1"
-              />
+            <label key={opt.id} style={{
+              display: "flex", alignItems: "center", gap: "10px", padding: "10px 12px",
+              borderRadius: "var(--radius)", border: "1px solid var(--border)",
+              cursor: "pointer", background: provider === opt.id ? "var(--accent-dim)" : "transparent",
+              borderColor: provider === opt.id ? "var(--accent)" : "var(--border)",
+            }}>
+              <input type="radio" name="provider" value={opt.id} checked={provider === opt.id}
+                onChange={() => { setProvider(opt.id); setStatus(`Set LLM_PROVIDER=${opt.id} and restart backend`); }}
+                style={{ accentColor: "var(--accent)" }} />
               <div>
-                <div className="font-medium text-sm">{opt.label}</div>
-                <div className="text-xs text-zinc-500">{opt.desc}</div>
+                <div style={{ fontSize: "13px", fontWeight: 500 }}>{opt.label}</div>
+                <div className="text-muted" style={{ fontSize: "11px" }}>{opt.desc}</div>
               </div>
             </label>
           ))}
         </div>
-      </section>
+        {status && (
+          <div style={{ marginTop: "12px", padding: "8px 12px", borderRadius: "var(--radius)", background: "var(--accent-dim)", fontSize: "12px", color: "var(--accent)" }}>
+            {status}
+          </div>
+        )}
+      </div>
 
-      {provider === "deepseek" && (
-        <section className="mb-6 rounded border p-4 bg-zinc-50">
-          <h3 className="font-medium mb-2">DeepSeek Configuration</h3>
-          <input
-            type="password"
-            placeholder="DeepSeek API Key"
-            value={deepseekKey}
-            onChange={(e) => setDeepseekKey(e.target.value)}
-            className="w-full rounded border px-3 py-2 text-sm mb-2"
-          />
-          <p className="text-xs text-zinc-500">
-            Set as env: DEEPSEEK_API_KEY=sk-xxx and LLM_PROVIDER=deepseek
-          </p>
-        </section>
-      )}
-
-      {provider === "openai_compatible" && (
-        <section className="mb-6 rounded border p-4 bg-zinc-50">
-          <h3 className="font-medium mb-2">OpenAI-compatible Configuration</h3>
-          <input
-            type="text"
-            placeholder="Base URL (e.g. http://localhost:11434/v1)"
-            value={openaiUrl}
-            onChange={(e) => setOpenaiUrl(e.target.value)}
-            className="w-full rounded border px-3 py-2 text-sm mb-2"
-          />
-          <input
-            type="text"
-            placeholder="Model name"
-            value={openaiModel}
-            onChange={(e) => setOpenaiModel(e.target.value)}
-            className="w-full rounded border px-3 py-2 text-sm mb-2"
-          />
-          <input
-            type="password"
-            placeholder="API Key (optional)"
-            value={openaiKey}
-            onChange={(e) => setOpenaiKey(e.target.value)}
-            className="w-full rounded border px-3 py-2 text-sm mb-2"
-          />
-          <p className="text-xs text-zinc-500">
-            Set as env: OPENAI_BASE_URL, OPENAI_MODEL, OPENAI_API_KEY, LLM_PROVIDER=openai_compatible
-          </p>
-        </section>
-      )}
-
-      {provider === "llamacpp" && (
-        <section className="mb-6 rounded border p-4 bg-green-50">
-          <h3 className="font-medium mb-2">Local Inference (Privacy-first)</h3>
-          <p className="text-sm text-zinc-600">
-            All data stays in the container. No external API calls.
-            Place a GGUF model in <code>docker/models/</code> and ensure llamacpp service is running.
-          </p>
-          <p className="text-xs text-zinc-500 mt-2">
-            Current model: qwen3-14b (configurable via LLM_MODEL env)
-          </p>
-        </section>
-      )}
-
-      {status && (
-        <div className="rounded bg-blue-50 border border-blue-200 p-3 text-sm text-blue-800">
-          {status}
-        </div>
-      )}
-
-      <section className="mt-6 text-sm text-zinc-500">
-        <h3 className="font-medium text-zinc-700 mb-1">How to apply</h3>
-        <p>Provider changes require a backend restart with the appropriate environment variables:</p>
-        <pre className="bg-zinc-100 rounded p-2 mt-2 text-xs overflow-x-auto">
-{`# Local (default, privacy-first)
-LLM_PROVIDER=llamacpp docker compose up -d backend
+      <div className="surface" style={{ padding: "20px", marginBottom: "16px" }}>
+        <div className="label" style={{ marginBottom: "8px" }}>Environment Variables</div>
+        <pre style={{ fontSize: "11px", color: "var(--text-secondary)", whiteSpace: "pre-wrap", lineHeight: 1.6 }}>
+{`# Local (default)
+LLM_PROVIDER=llamacpp
 
 # DeepSeek
-LLM_PROVIDER=deepseek DEEPSEEK_API_KEY=sk-xxx docker compose up -d backend
+LLM_PROVIDER=deepseek
+DEEPSEEK_API_KEY=sk-xxx
 
-# OpenAI-compatible (e.g. Ollama)
-LLM_PROVIDER=openai_compatible OPENAI_BASE_URL=http://host:11434/v1 OPENAI_MODEL=llama3 docker compose up -d backend`}
+# OpenAI-compatible (Ollama)
+LLM_PROVIDER=openai_compatible
+OPENAI_BASE_URL=http://host:11434/v1
+OPENAI_MODEL=llama3
+
+# Kaggle TPU
+LLM_PROVIDER=tpu
+TPU_BASE_URL=https://xxx.ngrok.io
+TPU_MODEL=google/gemma-2-9b-it`}
         </pre>
-      </section>
+      </div>
+
+      <div className="surface" style={{ padding: "20px" }}>
+        <div className="label" style={{ marginBottom: "8px" }}>API Key</div>
+        <p className="text-muted" style={{ fontSize: "12px", marginBottom: "8px" }}>
+          Backend requires X-API-Key header. Set API_KEY env var.
+        </p>
+        <code>API_KEY=your-secret-key</code>
+      </div>
     </div>
   );
 }

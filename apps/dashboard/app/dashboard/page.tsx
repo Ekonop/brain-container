@@ -6,74 +6,64 @@ const API_KEY = "dev-key";
 
 export default function DashboardPage() {
   const [health, setHealth] = useState<any>(null);
-  const [providers, setProviders] = useState<any>(null);
   const [plugins, setPlugins] = useState<any[]>([]);
 
   useEffect(() => {
-    const headers = { "X-API-Key": API_KEY };
+    const h = { "X-API-Key": API_KEY };
     fetch(`${API_BASE}/health`).then((r) => r.json()).then(setHealth).catch(() => {});
-    fetch(`${API_BASE}/providers`, { headers }).then((r) => r.json()).then(setProviders).catch(() => {});
-    fetch(`${API_BASE}/plugins`, { headers }).then((r) => r.json()).then(setPlugins).catch(() => {});
+    fetch(`${API_BASE}/plugins`, { headers: h }).then((r) => r.json()).then(setPlugins).catch(() => {});
   }, []);
 
   return (
     <div>
-      <h2 style={{ fontSize: "1.5rem", fontWeight: 700, marginBottom: "1.5rem" }}>System Dashboard</h2>
+      <h1 style={{ fontSize: "20px", fontWeight: 600, marginBottom: "24px" }}>Dashboard</h1>
 
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))", gap: "1rem", marginBottom: "1.5rem" }}>
-        <div className="card">
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "0.75rem" }}>
-            <h3 style={{ fontWeight: 600, fontSize: "0.875rem" }}>Backend Status</h3>
-            <span className={`badge ${health ? "badge-success" : "badge-error"}`}>
-              {health ? "Online" : "Offline"}
-            </span>
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "12px", marginBottom: "24px" }}>
+        <div className="surface" style={{ padding: "16px" }}>
+          <div className="label">Backend</div>
+          <div style={{ fontSize: "14px", fontWeight: 500, marginTop: "4px" }}>
+            {health ? "Online" : "Offline"}
           </div>
-          <div style={{ fontSize: "0.8125rem", color: "var(--text-muted)" }}>
-            <div>Service: {health?.service || "—"}</div>
-            <div>Provider: {health?.llm_provider || "—"}</div>
-            <div>TPU: {health?.tpu_status || "—"}</div>
+          <div className="text-muted" style={{ fontSize: "12px", marginTop: "2px" }}>
+            {health?.service || "—"}
           </div>
         </div>
-
-        <div className="card">
-          <h3 style={{ fontWeight: 600, fontSize: "0.875rem", marginBottom: "0.75rem" }}>LLM Provider</h3>
-          <div style={{ fontSize: "1.25rem", fontWeight: 700, color: "var(--accent)", marginBottom: "0.25rem" }}>
-            {providers?.current || "—"}
+        <div className="surface" style={{ padding: "16px" }}>
+          <div className="label">Provider</div>
+          <div style={{ fontSize: "14px", fontWeight: 500, marginTop: "4px" }}>
+            {health?.llm_provider || "—"}
           </div>
-          <div style={{ fontSize: "0.75rem", color: "var(--text-muted)" }}>
-            {providers?.available?.length || 0} providers available
+          <div className="text-muted" style={{ fontSize: "12px", marginTop: "2px" }}>
+            TPU: {health?.tpu_status || "—"}
           </div>
         </div>
-
-        <div className="card">
-          <h3 style={{ fontWeight: 600, fontSize: "0.875rem", marginBottom: "0.75rem" }}>Plugins</h3>
-          <div style={{ fontSize: "1.25rem", fontWeight: 700, color: "var(--success)", marginBottom: "0.25rem" }}>
-            {plugins.filter((p: any) => p.enabled).length}
+        <div className="surface" style={{ padding: "16px" }}>
+          <div className="label">Plugins</div>
+          <div style={{ fontSize: "14px", fontWeight: 500, marginTop: "4px" }}>
+            {plugins.filter((p: any) => p.enabled).length} / {plugins.length}
           </div>
-          <div style={{ fontSize: "0.75rem", color: "var(--text-muted)" }}>
-            of {plugins.length} enabled
+          <div className="text-muted" style={{ fontSize: "12px", marginTop: "2px" }}>
+            active
           </div>
         </div>
       </div>
 
-      <div className="card">
-        <h3 style={{ fontWeight: 600, fontSize: "0.875rem", marginBottom: "0.75rem" }}>Installed Plugins</h3>
-        <div style={{ display: "grid", gap: "0.5rem" }}>
-          {plugins.map((p: any) => (
-            <div key={p.name} style={{
-              display: "flex", justifyContent: "space-between", alignItems: "center",
-              padding: "0.5rem 0.75rem", borderRadius: "8px", background: "var(--surface-2)",
-            }}>
-              <div>
-                <span style={{ fontFamily: "monospace", fontSize: "0.8125rem" }}>{p.name}</span>
-                <span style={{ fontSize: "0.75rem", color: "var(--text-muted)", marginLeft: "0.5rem" }}>{p.description}</span>
-              </div>
-              <span className={`badge ${p.enabled ? "badge-success" : "badge-warning"}`}>
-                {p.enabled ? "Active" : "Disabled"}
-              </span>
+      <div className="surface" style={{ padding: "16px" }}>
+        <div className="label" style={{ marginBottom: "12px" }}>Plugins</div>
+        {plugins.map((p: any) => (
+          <div key={p.name} style={{
+            display: "flex", justifyContent: "space-between", alignItems: "center",
+            padding: "8px 0", borderBottom: "1px solid var(--border-subtle)",
+          }}>
+            <div>
+              <span style={{ fontFamily: "monospace", fontSize: "13px" }}>{p.name}</span>
+              <span className="text-muted" style={{ fontSize: "12px", marginLeft: "8px" }}>{p.description}</span>
             </div>
-          ))}
-        </div>
+            <span className={`badge ${p.enabled ? "badge-success" : "badge-warning"}`}>
+              {p.enabled ? "active" : "disabled"}
+            </span>
+          </div>
+        ))}
       </div>
     </div>
   );
